@@ -26,35 +26,39 @@ export default class Main extends React.Component {
     }
 
     init() {
-        AsyncStorage.getItem('purposes').then(items => {
-            items = JSON.parse(items) || [];
+        AsyncStorage.getItem('purposes').then(async items => {
+            items = await JSON.parse(items) || [];
             let has = 0;
             if (items.length != 0) {
-                items.map(item => {
+                await items.map(item => {
                     has += Number(item.price);
                 });
             }
 
-            this.getWallet();
+            await this.getWallet();
             this.setState({
-                items, has, now: 0, percent: this.getPercent()
-            })
+                items, has, percent: this.getPercent(has)
+            });
         })
     }
 
     getWallet() {
-        SmsAndroid.list(JSON.stringify({
-            address: '9830009417',
-            maxCount: 1,
-        }), (error) => { }, (count, items) => {
-            items = JSON.parse(items);
-            if(items.length == 1){
-                let body = items[0].body;
-                body = body.split('\n')[3].split(':')[1].split(',').join('');
-                body = Number(body) / 10;
-                this.setState({ now: body });
-            }
-
+        return new Promise((resolve) => {
+            SmsAndroid.list(JSON.stringify({
+                address: '9830009417',
+                maxCount: 1,
+            }), (error) => { }, (count, items) => {
+                items = JSON.parse(items);
+                if (items.length == 1) {
+                    let body = items[0].body;
+                    body = body.split('\n')[3].split(':')[1].split(',').join('');
+                    body = Number(body) / 10;
+                    this.setState({ now: body });
+                } else {
+                    this.setState({ now: 0 })
+                }
+                resolve();
+            })
         })
     }
 
@@ -68,11 +72,12 @@ export default class Main extends React.Component {
         return str;
     }
 
-    getPercent() {
-        let res = (100 * this.state.now) / this.state.has;
+    getPercent(has = this.state.has) {
+        let res = (100 * this.state.now) / has;
         res = Number.isNaN(res) ? 0 : res;
         if (res > 100) res = 100;
-        return Math.round(res);
+        res = Math.round(res);
+        return res;
     }
 
     renderItems() {
@@ -106,25 +111,27 @@ export default class Main extends React.Component {
                             <Text style={{ marginTop: 10, marginBottom: 10, color: '#505050' }}>You haven't added any financial purpose, yet. Please add a new financial purpose.</Text>
                             <Add onAdd={() => this.componentWillMount()} />
                         </View> :
-                        <View style={styles.container}>
-                            <View style={{ flex: 1 }}>
-                                <View style={styles.purpose}>
-                                    <Text style={styles.purposeNow}>{this.state.percent}%</Text>
-                                    <Text style={styles.purposePoint}>{this.toPrice(this.state.has) + 'T'} / {this.toPrice(this.state.now) + 'T'}</Text>
+                        (this.state.items) ?
+                            <View style={styles.container}>
+                                <View style={{ flex: 1 }}>
+                                    <View style={styles.purpose}>
+                                        <Text style={styles.purposeNow}>{this.state.percent}%</Text>
+                                        <Text style={styles.purposePoint}>{this.toPrice(this.state.has) + 'T'} / {this.toPrice(this.state.now) + 'T'}</Text>
+                                    </View>
+                                    <ScrollView>
+                                        {this.renderItems()}
+                                    </ScrollView>
+                                    <View style={{ position: 'absolute', left: 0, right: 0, bottom: 30, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                        <TouchableHighlight style={styles.button} onPress={() => Actions.push('add')}>
+                                            <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
+                                                <Image style={{ width: 24, height: 24, marginLeft: 15, marginRight: 5 }} source={require('../../assets/add.png')} />
+                                                <Text style={{ color: 'white' }}>Add purpose</Text>
+                                            </View>
+                                        </TouchableHighlight>
+                                    </View>
                                 </View>
-                                <ScrollView>
-                                    {this.renderItems()}
-                                </ScrollView>
-                                <View style={{ position: 'absolute', left: 0, right: 0, bottom: 30, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                    <TouchableHighlight style={styles.button} onPress={() => Actions.push('add')}>
-                                        <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
-                                            <Image style={{ width: 24, height: 24, marginLeft: 15, marginRight: 5 }} source={require('../../assets/add.png')} />
-                                            <Text style={{ color: 'white' }}>Add purpose</Text>
-                                        </View>
-                                    </TouchableHighlight>
-                                </View>
-                            </View>
-                        </View>
+                            </View> :
+                            <View></View>
                 }
             </View>
         )
