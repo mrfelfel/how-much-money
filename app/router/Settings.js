@@ -1,6 +1,6 @@
 import React from 'react';
 import AsyncStorage from '@react-native-community/async-storage';
-import { View, StyleSheet, Text, Image, TouchableHighlight } from 'react-native';
+import { View, StyleSheet, Text, Image, TouchableHighlight, ToastAndroid } from 'react-native';
 
 import banks from '../database/banks';
 import Header from '../components/Header';
@@ -41,6 +41,11 @@ export default class Setting extends React.Component {
         })
     }
 
+    deleteAll() {
+        AsyncStorage.removeItem("purposes");
+        ToastAndroid.show("All your purposes deleted successfully !", ToastAndroid.SHORT);
+    }
+
     render() {
         return (
             <View>
@@ -52,6 +57,17 @@ export default class Setting extends React.Component {
                     </View>
                 </TouchableHighlight>
                 {this.renderItems()}
+                <View style={styles.line}></View>
+                <View style={styles.column}>
+                    <Text style={{ fontSize: 16, marginTop: 20, marginLeft: 25, marginBottom: 10 }}>Delete all data</Text>
+                    <Text style={{ marginLeft: 25, marginRight: 20, color: '#666' }}>If you want delete all your purposes; press "Delete All" button bellow, to do this.</Text>
+                    <TouchableHighlight underlayColor="#2B50ED" style={[styles.button, { width: 140, alignSelf: 'flex-end' }]} onPress={() => this.deleteAll()}>
+                        <View style={[styles.row, { alignItems: 'center' }]}>
+                            <Image style={{ width: 24, height: 24, marginLeft: 20 }} source={require('../../assets/delete.white.png')} />
+                            <Text style={{ marginLeft: 10, color: '#fff' }}>Delete All</Text>
+                        </View>
+                    </TouchableHighlight>
+                </View>
             </View>
         )
     }
@@ -80,5 +96,18 @@ const styles = new StyleSheet.create({
         width: 40,
         height: 40,
         marginRight: 10
+    },
+    button: {
+        margin: 20,
+        height: 40,
+        borderRadius: 5,
+        backgroundColor: '#2B50ED',
+        display: 'flex',
+        justifyContent: 'center'
+    },
+    line: {
+        height: 1,
+        backgroundColor: 'rgba(0,0,0, 0.3)',
+        margin: 10
     }
 })
