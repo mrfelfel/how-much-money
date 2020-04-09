@@ -16,15 +16,16 @@ export default class Main extends React.Component {
         this.state = {
             items: null,
             now: 0,
-            has: 0
+            has: 0,
+            percent: 0
         }
     }
 
-    componentWillUpdate() {
-        this.componentWillMount();
+    componentDidMount() {
+        this.init();
     }
 
-    componentWillMount() {
+    init() {
         AsyncStorage.getItem('purposes').then(items => {
             items = JSON.parse(items) || [];
             let has = 0;
@@ -36,7 +37,7 @@ export default class Main extends React.Component {
 
             this.getWallet();
             this.setState({
-                items, has, now: 0
+                items, has, now: 0, percent: this.getPercent()
             })
         })
     }
@@ -47,10 +48,12 @@ export default class Main extends React.Component {
             maxCount: 1,
         }), (error) => { }, (count, items) => {
             items = JSON.parse(items);
-            let body = items[0].body;
-            body = body.split('\n')[3].split(':')[1].split(',').join('');
-            body = Number(body) / 10;
-            this.setState({ now: body });
+            if(items.length == 1){
+                let body = items[0].body;
+                body = body.split('\n')[3].split(':')[1].split(',').join('');
+                body = Number(body) / 10;
+                this.setState({ now: body });
+            }
 
         })
     }
@@ -77,7 +80,7 @@ export default class Main extends React.Component {
         if (items && Array.isArray(items)) {
             return items.map((item, index) => {
                 return (
-                    <Item title={item.title} sub={this.toPrice(item.price) + 'T'} onButtonPress={() => this.deleteItem(index)} />
+                    <Item title={item.title} sub={this.toPrice(item.price) + 'T'} onButtonPress={() => { this.deleteItem(index); this.init() }} />
                 )
             })
         } else {
@@ -106,7 +109,7 @@ export default class Main extends React.Component {
                         <View style={styles.container}>
                             <View style={{ flex: 1 }}>
                                 <View style={styles.purpose}>
-                                    <Text style={styles.purposeNow}>{this.getPercent()}%</Text>
+                                    <Text style={styles.purposeNow}>{this.state.percent}%</Text>
                                     <Text style={styles.purposePoint}>{this.toPrice(this.state.has) + 'T'} / {this.toPrice(this.state.now) + 'T'}</Text>
                                 </View>
                                 <ScrollView>

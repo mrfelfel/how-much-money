@@ -18,7 +18,7 @@ class App extends React.Component {
     return (
       <Router>
         <Stack key="root">
-          <Scene key="main" component={Main} hideNavBar={true} />
+          <Scene key="main" initial={true} component={Main} hideNavBar={true} />
           <Scene key="add" component={Add} hideNavBar={true} />
         </Stack>
       </Router>

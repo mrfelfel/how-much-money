@@ -15,7 +15,10 @@ export default class AddComponent extends React.Component {
             <View>
                 <Header title="Add new purpose" back={true} />
                 <View style={{ padding: 20 }}>
-                    <Add onAdd={() => Actions.pop()} />
+                    <Add onAdd={() => {
+                        Actions.pop();
+                        Actions.refs.main.init();
+                    }} />
                 </View>
             </View>
         )
