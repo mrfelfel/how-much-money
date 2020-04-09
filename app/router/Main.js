@@ -41,8 +41,8 @@ export default class Main extends React.Component {
             }
 
             this.readSMS()
-                .then(() => {
-                    this.getWallet()
+                .then(async () => {
+                    return await this.getWallet()
                 })
                 .then(() => {
                     this.setState({
