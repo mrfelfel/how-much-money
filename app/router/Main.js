@@ -1,6 +1,6 @@
 import React from 'react';
 import AsyncStorage from '@react-native-community/async-storage';
-import { View, Text, StyleSheet, ScrollView, TouchableHighlight, Image, ToastAndroid } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableHighlight, Image, Dimensions } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import SmsAndroid from 'react-native-get-sms-android';
 
@@ -17,7 +17,8 @@ export default class Main extends React.Component {
             items: null,
             now: 0,
             has: 0,
-            percent: 0
+            percent: 0,
+            tab: 0
         }
     }
 
@@ -84,9 +85,12 @@ export default class Main extends React.Component {
         let items = this.state.items;
         if (items && Array.isArray(items)) {
             return items.map((item, index) => {
-                return (
-                    <Item title={item.title} sub={this.toPrice(item.price) + 'T'} onButtonPress={() => { this.deleteItem(index); this.init() }} />
-                )
+                let done = parseInt(item.price) <= this.state.now;
+                if (this.state.tab == 0 || (this.state.tab == 1 && done == true) || (this.state.tab == 2 && done == false)) {
+                    return (
+                        <Item done={done} title={item.title} sub={this.toPrice(item.price) + 'T'} onButtonPress={() => { this.deleteItem(index); this.init() }} />
+                    )
+                }
             })
         } else {
             return (<></>)
@@ -109,7 +113,7 @@ export default class Main extends React.Component {
                         <View style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 20 }}>
                             <Text style={{ fontSize: 20 }}>No financial purpose</Text>
                             <Text style={{ marginTop: 10, marginBottom: 10, color: '#505050' }}>You haven't added any financial purpose, yet. Please add a new financial purpose.</Text>
-                            <Add onAdd={() => this.componentWillMount()} />
+                            <Add onAdd={() => this.init()} />
                         </View> :
                         (this.state.items) ?
                             <View style={styles.container}>
@@ -118,11 +122,22 @@ export default class Main extends React.Component {
                                         <Text style={styles.purposeNow}>{this.state.percent}%</Text>
                                         <Text style={styles.purposePoint}>{this.toPrice(this.state.has) + 'T'} / {this.toPrice(this.state.now) + 'T'}</Text>
                                     </View>
+                                    <View style={styles.tabs}>
+                                        <TouchableHighlight underlayColor="transparent" onPress={() => this.setState({ tab: 0 })} style={[styles.tab, { backgroundColor: (this.state.tab == 0) ? "#2B50ED" : "transparent" }]}>
+                                            <Text style={{ fontSize: 12, color: (this.state.tab == 0) ? "#fff" : "#000" }}>All</Text>
+                                        </TouchableHighlight>
+                                        <TouchableHighlight underlayColor="transparent" onPress={() => this.setState({ tab: 1 })} style={[styles.tab, { backgroundColor: (this.state.tab == 1) ? "#2B50ED" : "transparent" }]}>
+                                            <Text style={{ fontSize: 12, color: (this.state.tab == 1) ? "#fff" : "#000" }}>Finished</Text>
+                                        </TouchableHighlight>
+                                        <TouchableHighlight underlayColor="transparent" onPress={() => this.setState({ tab: 2 })} style={[styles.tab, { backgroundColor: (this.state.tab == 2) ? "#2B50ED" : "transparent" }]}>
+                                            <Text style={{ fontSize: 12, color: (this.state.tab == 2) ? "#fff" : "#000" }}>Not Finished</Text>
+                                        </TouchableHighlight>
+                                    </View>
                                     <ScrollView>
                                         {this.renderItems()}
                                     </ScrollView>
                                     <View style={{ position: 'absolute', left: 0, right: 0, bottom: 30, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                        <TouchableHighlight style={styles.button} onPress={() => Actions.push('add')}>
+                                        <TouchableHighlight underlayColor="#EA643A" style={styles.button} onPress={() => Actions.push('add')}>
                                             <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
                                                 <Image style={{ width: 24, height: 24, marginLeft: 15, marginRight: 5 }} source={require('../../assets/add.png')} />
                                                 <Text style={{ color: 'white' }}>Add purpose</Text>
@@ -185,5 +200,24 @@ const styles = new StyleSheet.create({
         backgroundColor: '#EA643A',
         height: 40,
         width: 150
+    },
+    tabs: {
+        display: 'flex',
+        flexWrap: 'wrap',
+        flexDirection: 'row',
+        backgroundColor: '#e9edf5',
+        padding: 2,
+        marginLeft: 20,
+        marginRight: 20,
+        borderRadius: 20
+    },
+    tab: {
+        margin: 2,
+        height: 30,
+        width: (Dimensions.get('window').width / 3) - 19,
+        borderRadius: 20,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
     }
 })

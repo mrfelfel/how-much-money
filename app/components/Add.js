@@ -42,7 +42,7 @@ export default class Add extends React.Component {
                     keyboardType="numeric"
                     returnKeyLabel="done"
                 />
-                <TouchableHighlight style={{ margin: 10, display: 'flex', justifyContent: 'center', alignItems: 'center', alignSelf: 'flex-end', width: 100, borderRadius: 6, backgroundColor: '#EA643A', height: 40 }} onPress={() => this.add()}>
+                <TouchableHighlight underlayColor="#EA643A" style={{ margin: 10, display: 'flex', justifyContent: 'center', alignItems: 'center', alignSelf: 'flex-end', width: 120, borderRadius: 6, backgroundColor: '#EA643A', height: 40 }} onPress={() => this.add()}>
                     <Text style={{ color: 'white' }}>Add purpose</Text>
                 </TouchableHighlight>
             </View>

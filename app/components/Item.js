@@ -18,16 +18,14 @@ class Item extends React.Component {
         return (
             <TouchableHighlight underlayColor="transparent" onPress={() => (this.props.onPress) ? this.props.onPress() : false}>
                 <View style={styles.item}>
-                    <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignSelf: 'flex-start' }}>
+                    <View style={[styles.dot, { backgroundColor: this.props.done ? '#2cca74' : '#ff2a2a' }]}></View>
+                    <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignSelf: 'flex-start', marginLeft: 15 }}>
                         <Text>{this.getTitle()}</Text>
                         <Text style={styles.sub, { display: this.getSub().length == 0 ? 'none' : 'flex' }}>{this.getSub()}</Text>
                     </View>
-                    {
-                        this.props.deleteAble == false ? <></> :
-                            <TouchableHighlight underlayColor="#ddd" style={styles.button} onPress={() => (this.props.onButtonPress) ? this.props.onButtonPress() : false}>
-                                <Image style={{ width: 24, height: 24 }} source={require('../../assets/delete.png')} />
-                            </TouchableHighlight>
-                    }
+                    <TouchableHighlight underlayColor="#ddd" style={styles.button} onPress={() => (this.props.onButtonPress) ? this.props.onButtonPress() : false}>
+                        <Image style={{ width: 24, height: 24 }} source={require('../../assets/delete.png')} />
+                    </TouchableHighlight>
                 </View>
             </TouchableHighlight>
         )
@@ -60,6 +58,14 @@ const styles = new StyleSheet.create({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
+    },
+    dot: {
+        position: 'absolute',
+        marginLeft: 5,
+        width: 10,
+        height: 10,
+        borderRadius: 100,
+        alignSelf: 'flex-start'
     }
 })
 
