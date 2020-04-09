@@ -1,4 +1,5 @@
 import React from 'react';
+import * as tmpl from 'reverse-string-template';
 import AsyncStorage from '@react-native-community/async-storage';
 import { View, Text, StyleSheet, ScrollView, TouchableHighlight, Image, Dimensions } from 'react-native';
 import { Actions } from 'react-native-router-flux';
@@ -71,6 +72,17 @@ export default class Main extends React.Component {
         })
     }
 
+    extractDataFromBankSMS(data) {
+        const parsed = tmpl(data.data, data.template)
+
+        const keys = Object.keys(parsed)
+
+        keys.forEach((key) => {
+            parsed[key] = parsed[key].replace(new RegExp(data.spacer, 'g'), '')
+        })
+
+        return parsed
+    }
     getWallet() {
         return new Promise((resolve) => {
             AsyncStorage.getItem('bank').then(index => {
@@ -92,7 +104,12 @@ export default class Main extends React.Component {
                                 items = JSON.parse(items);
                                 if (items.length == 1) {
                                     let body = items[0].body;
-                                    body = body.split('\n')[3].split(':')[1].split(',').join('');
+                                    body = this.ExtractDataFromBankSms({
+                                        spacer: bank[index]['spacer'],
+                                        template: bank[index]['template'],
+                                        data: body
+
+                                    }).account
                                     body = Number(body) / 10;
                                     this.setState({ now: body });
                                 } else {
@@ -201,12 +218,12 @@ export default class Main extends React.Component {
                     }
                 </View>
             )
-        } else if(this.state.permission == false) {
+        } else if (this.state.permission == false) {
             return (
                 <View style={styles.main}>
                     <Header title="How much money" />
                     <View style={{ flex: 1, marginTop: -100, padding: 30, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                        <Image source={require('../../assets/sms.png')}/>
+                        <Image source={require('../../assets/sms.png')} />
                         <Text style={{ fontSize: 20, margin: 10, }}>Access denied !</Text>
                         <Text style={{ textAlign: 'center', color: '#666' }}>We need access to read your bank sms. But you denied this permission !</Text>
                     </View>
