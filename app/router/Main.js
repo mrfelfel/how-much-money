@@ -8,6 +8,8 @@ import Header from '../components/Header';
 import Add from '../components/Add';
 import Item from '../components/Item';
 
+import bank from '../database/banks';
+
 console.disableYellowBox = true;
 
 export default class Main extends React.Component {
@@ -45,20 +47,39 @@ export default class Main extends React.Component {
 
     getWallet() {
         return new Promise((resolve) => {
-            SmsAndroid.list(JSON.stringify({
-                address: '9830009417',
-                maxCount: 1,
-            }), (error) => { }, (count, items) => {
-                items = JSON.parse(items);
-                if (items.length == 1) {
-                    let body = items[0].body;
-                    body = body.split('\n')[3].split(':')[1].split(',').join('');
-                    body = Number(body) / 10;
-                    this.setState({ now: body });
+            AsyncStorage.getItem('bank').then(index => {
+                if (index) {
+                    index = parseInt(index);
+                    if (index < 0) {
+                        this.setState({ now: 0 })
+                        resolve();
+                    } else {
+                        let address = bank[index]['phone'];
+                        if (address) {
+                            SmsAndroid.list(JSON.stringify({
+                                address,
+                                maxCount: 1,
+                            }), (error) => { }, (count, items) => {
+                                items = JSON.parse(items);
+                                if (items.length == 1) {
+                                    let body = items[0].body;
+                                    body = body.split('\n')[3].split(':')[1].split(',').join('');
+                                    body = Number(body) / 10;
+                                    this.setState({ now: body });
+                                } else {
+                                    this.setState({ now: 0 })
+                                }
+                                resolve();
+                            })
+                        } else {
+                            this.setState({ now: 0 })
+                            resolve();
+                        }
+                    }
                 } else {
                     this.setState({ now: 0 })
+                    resolve();
                 }
-                resolve();
             })
         })
     }
@@ -107,7 +128,7 @@ export default class Main extends React.Component {
     render() {
         return (
             <View style={styles.main}>
-                <Header title="How much money" />
+                <Header title="How much money" setting={true} />
                 {
                     (this.state.items && this.state.items.length == 0) ?
                         <View style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 20 }}>
@@ -120,7 +141,7 @@ export default class Main extends React.Component {
                                 <View style={{ flex: 1 }}>
                                     <View style={styles.purpose}>
                                         <Text style={styles.purposeNow}>{this.state.percent}%</Text>
-                                        <Text style={styles.purposePoint}>{this.toPrice(this.state.has) + 'T'} / {this.toPrice(this.state.now) + 'T'}</Text>
+                                        <Text style={styles.purposePoint}>{this.toPrice(this.state.now) + 'T'} / {this.toPrice(this.state.has) + 'T'}</Text>
                                     </View>
                                     <View style={styles.tabs}>
                                         <TouchableHighlight underlayColor="transparent" onPress={() => this.setState({ tab: 0 })} style={[styles.tab, { backgroundColor: (this.state.tab == 0) ? "#2B50ED" : "transparent" }]}>

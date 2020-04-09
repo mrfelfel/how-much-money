@@ -11,13 +11,23 @@ export default class Header extends React.Component {
         return (
             <View style={styles.header}>
                 {
-                    (this.props.back == true) ?
-                        <TouchableHighlight underlayColor="transparent" style={styles.button} onPress={() => Actions.pop()}>
+                    (this.props.back && this.props.back == true) ?
+                        <TouchableHighlight underlayColor="transparent" style={styles.button} onPress={() => {
+                            Actions.pop();
+                            Actions.refs.main.init();
+                        }}>
                             <Image style={{ width: 20, height: 20 }} source={require('../../assets/back.png')} />
                         </TouchableHighlight>
                         : <></>
                 }
                 <Text style={styles.AppTitle}>{this.props.title || ''}</Text>
+                {
+                    (this.props.setting && this.props.setting == true) ?
+                        <TouchableHighlight underlayColor="transparent" style={[styles.button, { position: 'absolute', right: -10 }]} onPress={() => Actions.setting()}>
+                            <Image style={{ width: 20, height: 20 }} source={require('../../assets/settings.png')} />
+                        </TouchableHighlight>
+                        : <></>
+                }
             </View>
         )
     }
