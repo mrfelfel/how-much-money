@@ -42,6 +42,9 @@ export default class Main extends React.Component {
 
             this.readSMS()
                 .then(async () => {
+                    return await this.getSMS()
+                })
+                .then(async () => {
                     return await this.getWallet()
                 })
                 .then(() => {
@@ -71,7 +74,7 @@ export default class Main extends React.Component {
         })
     }
 
-    getWallet() {
+    getSMS() {
         return new Promise((resolve) => {
             AsyncStorage.getItem('bank').then(index => {
                 if (index) {
@@ -107,6 +110,21 @@ export default class Main extends React.Component {
                     }
                 } else {
                     this.setState({ now: 0 })
+                    resolve();
+                }
+            })
+        })
+    }
+
+    getWallet() {
+        return new Promise((resolve) => {
+            AsyncStorage.getItem('wallet').then(amount => {
+                if (amount) {
+                    amount = parseInt(amount);                    
+                    this.setState({ now: this.state.now + amount });
+                    resolve();
+                } else {
+                    this.setState({ now: this.state.now });
                     resolve();
                 }
             })
@@ -170,6 +188,9 @@ export default class Main extends React.Component {
                                 <View style={styles.container}>
                                     <View style={{ flex: 1 }}>
                                         <View style={styles.purpose}>
+                                            <TouchableHighlight underlayColor="transparent" onPress={() => Actions.push('wallet', { now: this.state.now })} style={styles.purposeButton}>
+                                                <Image style={{ width: 24, height: 24 }} source={require('../../assets/add.png')} />
+                                            </TouchableHighlight>
                                             <Text style={styles.purposeNow}>{this.state.percent}%</Text>
                                             <Text style={styles.purposePoint}>{this.toPrice(this.state.now) + 'T'} / {this.toPrice(this.state.has) + 'T'}</Text>
                                         </View>
@@ -201,12 +222,12 @@ export default class Main extends React.Component {
                     }
                 </View>
             )
-        } else if(this.state.permission == false) {
+        } else if (this.state.permission == false) {
             return (
                 <View style={styles.main}>
                     <Header title="How much money" />
                     <View style={{ flex: 1, marginTop: -100, padding: 30, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                        <Image source={require('../../assets/sms.png')}/>
+                        <Image source={require('../../assets/sms.png')} />
                         <Text style={{ fontSize: 20, margin: 10, }}>Access denied !</Text>
                         <Text style={{ textAlign: 'center', color: '#666' }}>We need access to read your bank sms. But you denied this permission !</Text>
                     </View>
@@ -252,6 +273,11 @@ const styles = new StyleSheet.create({
         },
         shadowOpacity: 0.5,
         elevation: 10,
+    },
+    purposeButton: {
+        position: 'absolute',
+        top: 15,
+        right: 15
     },
     purposeNow: {
         color: 'white',
