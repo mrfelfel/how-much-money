@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import { View, Text, StyleSheet, ScrollView, TouchableHighlight, Image, Dimensions } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import SmsAndroid from 'react-native-get-sms-android';
+import permission from 'react-native-permissions';
 
 import Header from '../components/Header';
 import Add from '../components/Add';
@@ -20,7 +21,8 @@ export default class Main extends React.Component {
             now: 0,
             has: 0,
             percent: 0,
-            tab: 0
+            tab: 0,
+            permission: null
         }
     }
 
@@ -38,10 +40,34 @@ export default class Main extends React.Component {
                 });
             }
 
-            await this.getWallet();
-            this.setState({
-                items, has, percent: this.getPercent(has)
-            });
+            this.readSMS()
+                .then(() => {
+                    this.getWallet()
+                })
+                .then(() => {
+                    this.setState({
+                        items, has, percent: this.getPercent(has)
+                    });
+                })
+                .catch(() => this.setState({ now: 0 }));
+        })
+    }
+
+    readSMS() {
+        return new Promise((resolve, reject) => {
+            permission.check(permission.PERMISSIONS.ANDROID.READ_SMS)
+                .then(result => {
+                    this.setState({ permission: result == 'granted' })
+                    if (result == 'granted') resolve();
+                    else if (result == 'denied') {
+                        permission.request(permission.PERMISSIONS.ANDROID.READ_SMS)
+                            .then(result => {
+                                this.setState({ permission: result == 'granted' })
+                                if (result == 'granted') resolve();
+                                else reject();
+                            })
+                    } else reject();
+                })
         })
     }
 
@@ -59,7 +85,10 @@ export default class Main extends React.Component {
                             SmsAndroid.list(JSON.stringify({
                                 address,
                                 maxCount: 1,
-                            }), (error) => { }, (count, items) => {
+                            }), (error) => {
+                                this.setState({ now: 0 })
+                                resolve();
+                            }, (count, items) => {
                                 items = JSON.parse(items);
                                 if (items.length == 1) {
                                     let body = items[0].body;
@@ -126,51 +155,68 @@ export default class Main extends React.Component {
     }
 
     render() {
-        return (
-            <View style={styles.main}>
-                <Header title="How much money" setting={true} />
-                {
-                    (this.state.items && this.state.items.length == 0) ?
-                        <View style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 20 }}>
-                            <Text style={{ fontSize: 20 }}>No financial purpose</Text>
-                            <Text style={{ marginTop: 10, marginBottom: 10, color: '#505050' }}>You haven't added any financial purpose, yet. Please add a new financial purpose.</Text>
-                            <Add onAdd={() => this.init()} />
-                        </View> :
-                        (this.state.items) ?
-                            <View style={styles.container}>
-                                <View style={{ flex: 1 }}>
-                                    <View style={styles.purpose}>
-                                        <Text style={styles.purposeNow}>{this.state.percent}%</Text>
-                                        <Text style={styles.purposePoint}>{this.toPrice(this.state.now) + 'T'} / {this.toPrice(this.state.has) + 'T'}</Text>
-                                    </View>
-                                    <View style={styles.tabs}>
-                                        <TouchableHighlight underlayColor="transparent" onPress={() => this.setState({ tab: 0 })} style={[styles.tab, { backgroundColor: (this.state.tab == 0) ? "#2B50ED" : "transparent" }]}>
-                                            <Text style={{ fontSize: 12, color: (this.state.tab == 0) ? "#fff" : "#000" }}>All</Text>
-                                        </TouchableHighlight>
-                                        <TouchableHighlight underlayColor="transparent" onPress={() => this.setState({ tab: 1 })} style={[styles.tab, { backgroundColor: (this.state.tab == 1) ? "#2B50ED" : "transparent" }]}>
-                                            <Text style={{ fontSize: 12, color: (this.state.tab == 1) ? "#fff" : "#000" }}>Finished</Text>
-                                        </TouchableHighlight>
-                                        <TouchableHighlight underlayColor="transparent" onPress={() => this.setState({ tab: 2 })} style={[styles.tab, { backgroundColor: (this.state.tab == 2) ? "#2B50ED" : "transparent" }]}>
-                                            <Text style={{ fontSize: 12, color: (this.state.tab == 2) ? "#fff" : "#000" }}>Not Finished</Text>
-                                        </TouchableHighlight>
-                                    </View>
-                                    <ScrollView>
-                                        {this.renderItems()}
-                                    </ScrollView>
-                                    <View style={{ position: 'absolute', left: 0, right: 0, bottom: 30, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                        <TouchableHighlight underlayColor="#EA643A" style={styles.button} onPress={() => Actions.push('add')}>
-                                            <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
-                                                <Image style={{ width: 24, height: 24, marginLeft: 15, marginRight: 5 }} source={require('../../assets/add.png')} />
-                                                <Text style={{ color: 'white' }}>Add purpose</Text>
-                                            </View>
-                                        </TouchableHighlight>
-                                    </View>
-                                </View>
+        if (this.state.permission == true) {
+            return (
+                <View style={styles.main}>
+                    <Header title="How much money" setting={this.state.items && this.state.items.length != 0} />
+                    {
+                        (this.state.items && this.state.items.length == 0) ?
+                            <View style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 20 }}>
+                                <Text style={{ fontSize: 20 }}>No financial purpose</Text>
+                                <Text style={{ marginTop: 10, marginBottom: 10, color: '#505050' }}>You haven't added any financial purpose, yet. Please add a new financial purpose.</Text>
+                                <Add onAdd={() => this.init()} />
                             </View> :
-                            <View></View>
-                }
-            </View>
-        )
+                            (this.state.items) ?
+                                <View style={styles.container}>
+                                    <View style={{ flex: 1 }}>
+                                        <View style={styles.purpose}>
+                                            <Text style={styles.purposeNow}>{this.state.percent}%</Text>
+                                            <Text style={styles.purposePoint}>{this.toPrice(this.state.now) + 'T'} / {this.toPrice(this.state.has) + 'T'}</Text>
+                                        </View>
+                                        <View style={styles.tabs}>
+                                            <TouchableHighlight underlayColor="transparent" onPress={() => this.setState({ tab: 0 })} style={[styles.tab, { backgroundColor: (this.state.tab == 0) ? "#2B50ED" : "transparent" }]}>
+                                                <Text style={{ fontSize: 12, color: (this.state.tab == 0) ? "#fff" : "#000" }}>All</Text>
+                                            </TouchableHighlight>
+                                            <TouchableHighlight underlayColor="transparent" onPress={() => this.setState({ tab: 1 })} style={[styles.tab, { backgroundColor: (this.state.tab == 1) ? "#2B50ED" : "transparent" }]}>
+                                                <Text style={{ fontSize: 12, color: (this.state.tab == 1) ? "#fff" : "#000" }}>Finished</Text>
+                                            </TouchableHighlight>
+                                            <TouchableHighlight underlayColor="transparent" onPress={() => this.setState({ tab: 2 })} style={[styles.tab, { backgroundColor: (this.state.tab == 2) ? "#2B50ED" : "transparent" }]}>
+                                                <Text style={{ fontSize: 12, color: (this.state.tab == 2) ? "#fff" : "#000" }}>Not Finished</Text>
+                                            </TouchableHighlight>
+                                        </View>
+                                        <ScrollView>
+                                            {this.renderItems()}
+                                        </ScrollView>
+                                        <View style={{ position: 'absolute', left: 0, right: 0, bottom: 30, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                            <TouchableHighlight underlayColor="#EA643A" style={styles.button} onPress={() => Actions.push('add')}>
+                                                <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
+                                                    <Image style={{ width: 24, height: 24, marginLeft: 15, marginRight: 5 }} source={require('../../assets/add.png')} />
+                                                    <Text style={{ color: 'white' }}>Add purpose</Text>
+                                                </View>
+                                            </TouchableHighlight>
+                                        </View>
+                                    </View>
+                                </View> :
+                                <View></View>
+                    }
+                </View>
+            )
+        } else if(this.state.permission == false) {
+            return (
+                <View style={styles.main}>
+                    <Header title="How much money" />
+                    <View style={{ flex: 1, marginTop: -100, padding: 30, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <Image source={require('../../assets/sms.png')}/>
+                        <Text style={{ fontSize: 20, margin: 10, }}>Access denied !</Text>
+                        <Text style={{ textAlign: 'center', color: '#666' }}>We need access to read your bank sms. But you denied this permission !</Text>
+                    </View>
+                </View>
+            )
+        } else {
+            return (
+                <View></View>
+            )
+        }
     }
 }
 
