@@ -14,7 +14,7 @@ export default class Setting extends React.Component {
         }
     }
 
-    componentDidMount() {
+    async componentDidMount() {
         AsyncStorage.getItem('bank').then(index => {
             this.setState({ selected: parseInt(index) });
         })
