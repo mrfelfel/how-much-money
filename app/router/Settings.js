@@ -1,6 +1,6 @@
 import React from 'react';
 import AsyncStorage from '@react-native-community/async-storage';
-import { View, StyleSheet, Text, Image, TouchableHighlight, ToastAndroid } from 'react-native';
+import { View, StyleSheet, Text, Image, TouchableHighlight, ToastAndroid, Linking } from 'react-native';
 
 import banks from '../database/banks';
 import Header from '../components/Header';
@@ -66,6 +66,17 @@ export default class Setting extends React.Component {
                             <Image style={{ width: 24, height: 24, marginLeft: 20 }} source={require('../../assets/delete.white.png')} />
                             <Text style={{ marginLeft: 10, color: '#fff' }}>Delete All</Text>
                         </View>
+                    </TouchableHighlight>
+                </View>
+                <View style={styles.line}></View>
+                <View style={[styles.row, { padding: 20, paddingTop: 0 }]}>
+                    <View style={styles.column}>
+                        <Text style={{ fontWeight: 'bold', fontSize: 17, marginBottom: 10 }}>How much money</Text>
+                        <Text>Version 0.0.1</Text>
+                        <Text>MIT License and free for every body</Text>
+                    </View>
+                    <TouchableHighlight onPress={() => Linking.openURL('https://github.com/jaypy-code/how-much-money')} style={{ position: 'absolute', right: 15, borderRadius: 100 }}>
+                        <Image style={{ width: 28, height: 28 }} source={require('../../assets/github.png')} />
                     </TouchableHighlight>
                 </View>
             </View>
