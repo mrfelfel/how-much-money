@@ -1,4 +1,5 @@
 import React from 'react';
+import tmpl from 'reverse-string-template';
 import AsyncStorage from '@react-native-community/async-storage';
 import { View, Text, StyleSheet, ScrollView, TouchableHighlight, Image, Dimensions } from 'react-native';
 import { Actions } from 'react-native-router-flux';
@@ -74,6 +75,18 @@ export default class Main extends React.Component {
         })
     }
 
+    extractDataFromBankSMS(data) {        
+        const parsed = tmpl(data.data, data.template)
+
+        const keys = Object.keys(parsed)
+
+        keys.forEach((key) => {
+            parsed[key] = parsed[key].replace(new RegExp(data.spacer, 'g'), '')
+        })
+
+        return parsed
+    }
+
     getSMS() {
         return new Promise((resolve) => {
             AsyncStorage.getItem('bank').then(index => {
@@ -95,8 +108,13 @@ export default class Main extends React.Component {
                                 items = JSON.parse(items);
                                 if (items.length == 1) {
                                     let body = items[0].body;
-                                    body = body.split('\n')[3].split(':')[1].split(',').join('');
-                                    body = Number(body) / 10;
+                                    body = this.extractDataFromBankSMS({
+                                        spacer: bank[index]['spacer'],
+                                        template: bank[index]['template'],
+                                        data: body
+
+                                    }).account;
+                                    body = Number(body) / 10;                                    
                                     this.setState({ now: body });
                                 } else {
                                     this.setState({ now: 0 })
@@ -120,7 +138,7 @@ export default class Main extends React.Component {
         return new Promise((resolve) => {
             AsyncStorage.getItem('wallet').then(amount => {
                 if (amount) {
-                    amount = parseInt(amount);                    
+                    amount = parseInt(amount);
                     this.setState({ now: this.state.now + amount });
                     resolve();
                 } else {
