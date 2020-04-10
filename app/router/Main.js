@@ -104,7 +104,7 @@ export default class Main extends React.Component {
                                 items = JSON.parse(items);
                                 if (items.length == 1) {
                                     let body = items[0].body;
-                                    body = this.ExtractDataFromBankSms({
+                                    body = this.extractDataFromBankSMS({
                                         spacer: bank[index]['spacer'],
                                         template: bank[index]['template'],
                                         data: body
