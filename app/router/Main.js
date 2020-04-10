@@ -1,5 +1,5 @@
 import React from 'react';
-import * as tmpl from 'reverse-string-template';
+import tmpl from 'reverse-string-template';
 import AsyncStorage from '@react-native-community/async-storage';
 import { View, Text, StyleSheet, ScrollView, TouchableHighlight, Image, Dimensions } from 'react-native';
 import { Actions } from 'react-native-router-flux';
@@ -43,6 +43,9 @@ export default class Main extends React.Component {
 
             this.readSMS()
                 .then(async () => {
+                    return await this.getSMS()
+                })
+                .then(async () => {
                     return await this.getWallet()
                 })
                 .then(() => {
@@ -72,7 +75,7 @@ export default class Main extends React.Component {
         })
     }
 
-    extractDataFromBankSMS(data) {
+    extractDataFromBankSMS(data) {        
         const parsed = tmpl(data.data, data.template)
 
         const keys = Object.keys(parsed)
@@ -83,7 +86,8 @@ export default class Main extends React.Component {
 
         return parsed
     }
-    getWallet() {
+
+    getSMS() {
         return new Promise((resolve) => {
             AsyncStorage.getItem('bank').then(index => {
                 if (index) {
@@ -109,8 +113,8 @@ export default class Main extends React.Component {
                                         template: bank[index]['template'],
                                         data: body
 
-                                    }).account
-                                    body = Number(body) / 10;
+                                    }).account;
+                                    body = Number(body) / 10;                                    
                                     this.setState({ now: body });
                                 } else {
                                     this.setState({ now: 0 })
@@ -124,6 +128,21 @@ export default class Main extends React.Component {
                     }
                 } else {
                     this.setState({ now: 0 })
+                    resolve();
+                }
+            })
+        })
+    }
+
+    getWallet() {
+        return new Promise((resolve) => {
+            AsyncStorage.getItem('wallet').then(amount => {
+                if (amount) {
+                    amount = parseInt(amount);
+                    this.setState({ now: this.state.now + amount });
+                    resolve();
+                } else {
+                    this.setState({ now: this.state.now });
                     resolve();
                 }
             })
@@ -187,6 +206,9 @@ export default class Main extends React.Component {
                                 <View style={styles.container}>
                                     <View style={{ flex: 1 }}>
                                         <View style={styles.purpose}>
+                                            <TouchableHighlight underlayColor="transparent" onPress={() => Actions.push('wallet', { now: this.state.now })} style={styles.purposeButton}>
+                                                <Image style={{ width: 24, height: 24 }} source={require('../../assets/add.png')} />
+                                            </TouchableHighlight>
                                             <Text style={styles.purposeNow}>{this.state.percent}%</Text>
                                             <Text style={styles.purposePoint}>{this.toPrice(this.state.now) + 'T'} / {this.toPrice(this.state.has) + 'T'}</Text>
                                         </View>
@@ -269,6 +291,11 @@ const styles = new StyleSheet.create({
         },
         shadowOpacity: 0.5,
         elevation: 10,
+    },
+    purposeButton: {
+        position: 'absolute',
+        top: 15,
+        right: 15
     },
     purposeNow: {
         color: 'white',

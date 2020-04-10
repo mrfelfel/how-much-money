@@ -4,6 +4,7 @@ import { View, StyleSheet, Text, Image, TouchableHighlight, ToastAndroid, Linkin
 
 import banks from '../database/banks';
 import Header from '../components/Header';
+import { ScrollView } from 'react-native-gesture-handler';
 
 export default class Setting extends React.Component {
     constructor() {
@@ -46,9 +47,14 @@ export default class Setting extends React.Component {
         ToastAndroid.show("All your purposes deleted successfully !", ToastAndroid.SHORT);
     }
 
+    remake() {
+        AsyncStorage.setItem("wallet", "0");
+        ToastAndroid.show("Your wallet remade successfully !", ToastAndroid.SHORT);
+    }
+
     render() {
         return (
-            <View>
+            <ScrollView>
                 <Header title="Settings" back={true} />
                 <Text style={{ fontSize: 16, margin: 10, marginLeft: 25 }}>Select your bank</Text>
                 <TouchableHighlight underlayColor="transparent" onPress={() => this.select(-1)}>
@@ -59,7 +65,7 @@ export default class Setting extends React.Component {
                 {this.renderItems()}
                 <View style={styles.line}></View>
                 <View style={styles.column}>
-                    <Text style={{ fontSize: 16, marginTop: 20, marginLeft: 25, marginBottom: 10 }}>Delete all data</Text>
+                    <Text style={{ fontSize: 16, marginTop: 20, marginLeft: 25, marginBottom: 10 }}>Delete all purposes</Text>
                     <Text style={{ marginLeft: 25, marginRight: 20, color: '#666' }}>If you want delete all your purposes; press "Delete All" button bellow, to do this.</Text>
                     <TouchableHighlight underlayColor="#2B50ED" style={[styles.button, { width: 140, alignSelf: 'flex-end' }]} onPress={() => this.deleteAll()}>
                         <View style={[styles.row, { alignItems: 'center' }]}>
@@ -68,18 +74,28 @@ export default class Setting extends React.Component {
                         </View>
                     </TouchableHighlight>
                 </View>
+                <View style={styles.column}>
+                    <Text style={{ fontSize: 16, marginTop: 20, marginLeft: 25, marginBottom: 10 }}>Remake my wallet</Text>
+                    <Text style={{ marginLeft: 25, marginRight: 20, color: '#666' }}>If you want remake your wallet and make amount of the wallet to 0T. P  ress "Remake" button bellow, to do this.</Text>
+                    <TouchableHighlight underlayColor="#2B50ED" style={[styles.button, { width: 100, alignSelf: 'flex-end' }]} onPress={() => this.remake()}>
+                        <View style={[styles.row, { alignItems: 'center', justifyContent: 'center' }]}>
+                            <Text style={{ color: '#fff' }}>Remake</Text>
+                        </View>
+                    </TouchableHighlight>
+                </View>
                 <View style={styles.line}></View>
                 <View style={[styles.row, { padding: 20, paddingTop: 0 }]}>
                     <View style={styles.column}>
                         <Text style={{ fontWeight: 'bold', fontSize: 17, marginBottom: 10 }}>How much money</Text>
-                        <Text>Version 0.0.1</Text>
-                        <Text>MIT License and free for every body</Text>
+                        <Text>Version 0.0.1 (Official)</Text>
+                        <Text>MIT License and free for every body.</Text>
+                        <Text>This app is designed by JayPY's hands!</Text>
                     </View>
                     <TouchableHighlight onPress={() => Linking.openURL('https://github.com/jaypy-code/how-much-money')} style={{ position: 'absolute', right: 15, borderRadius: 100 }}>
                         <Image style={{ width: 28, height: 28 }} source={require('../../assets/github.png')} />
                     </TouchableHighlight>
                 </View>
-            </View>
+            </ScrollView>
         )
     }
 }

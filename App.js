@@ -5,6 +5,7 @@ console.disableYellowBox = true;
 
 import Main from './app/router/Main';
 import Add from './app/router/Add';
+import Wallet from './app/router/Wallet';
 import Setting from './app/router/Settings';
 
 class App extends React.Component {
@@ -21,6 +22,7 @@ class App extends React.Component {
         <Stack key="root">
           <Scene key="main" initial={true} component={Main} hideNavBar={true} />
           <Scene key="add" component={Add} hideNavBar={true} />
+          <Scene key="wallet" component={Wallet} hideNavBar={true} />
           <Scene key="setting" component={Setting} hideNavBar={true} />
         </Stack>
       </Router>
