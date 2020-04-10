@@ -76,7 +76,7 @@ export default class Setting extends React.Component {
                 </View>
                 <View style={styles.column}>
                     <Text style={{ fontSize: 16, marginTop: 20, marginLeft: 25, marginBottom: 10 }}>Remake my wallet</Text>
-                    <Text style={{ marginLeft: 25, marginRight: 20, color: '#666' }}>If you want remake your wallet and make amount of the wallet to 0T. P  ress "Remake" button bellow, to do this.</Text>
+                    <Text style={{ marginLeft: 25, marginRight: 20, color: '#666' }}>If you want remake your wallet and make amount of the wallet to 0T. Press "Remake" button bellow, to do this.</Text>
                     <TouchableHighlight underlayColor="#2B50ED" style={[styles.button, { width: 100, alignSelf: 'flex-end' }]} onPress={() => this.remake()}>
                         <View style={[styles.row, { alignItems: 'center', justifyContent: 'center' }]}>
                             <Text style={{ color: '#fff' }}>Remake</Text>
